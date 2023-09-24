@@ -1,0 +1,20 @@
+.currentMonthDay{
+    background-color: aqua;
+}
+.otherMonthDay{
+    background-color:aquamarine;
+}
+.prevMonth{
+    background-color: gray;
+    cursor:pointer;
+}
+.nextMonth{
+    background-color: gray; 
+    cursor:pointer;
+}
+.datepickerTable{
+    width: 200px;
+    height: 200px;
+    border: 2px solid #007bff;
+}
+
