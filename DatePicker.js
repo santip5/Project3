@@ -3,12 +3,46 @@ function DatePicker(divId, dateSelectionCallback) {
     this.div = document.getElementById(divId);
     this.dateSelectionCallback = dateSelectionCallback;
     this.selectedDate = new Date();     // Initialize the current date
+    // Store a reference to the DatePicker instance
+    var self = this;
+
+    // Add event listener for date selection
+    this.div.addEventListener('click', function (event) {
+      if (event.target.classList.contains('currentMonthDay')) {
+        var selectedDate = new Date(self.selectedDate.getFullYear(), self.selectedDate.getMonth(), event.target.textContent);
+        dateSelectionCallback(divId, {
+          month: selectedDate.getMonth() + 1, // Months are zero-based, so add 1
+          day: selectedDate.getDate(),
+          year: selectedDate.getFullYear(),
+        });
+      }
+    });
     // render date
     this.render = function (date) {
         this.selectedDate = date;
       var currentDate = new Date(this.selectedDate);   // Create a new Date object for the selected month.
       currentDate.setDate(1); // Set date to the first of the month
       var daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];   // Store days of the week
+      // Create a variable to store the first day of the month
+      var firstDayOfMonth = currentDate.getDay();
+      // Calculate the number of days in the previous month
+      var daysInPreviousMonth = new Date(
+          this.selectedDate.getFullYear(),
+          this.selectedDate.getMonth(),
+          0
+      ).getDate();
+      // Calculate the number of days in the current month
+      var daysInMonth = new Date(
+          this.selectedDate.getFullYear(),
+          this.selectedDate.getMonth() + 1,
+          0
+      ).getDate();
+      // Calculate the total number of days to display in the calendar
+      var totalDays = firstDayOfMonth + daysInMonth;
+      // Calculate the total number of rows needed
+      var numRows = Math.ceil(totalDays / 7);
+      // Create a variable to keep track of the day being displayed
+      var currentDay = 1;
    //building calendar
       var calendarHTML = '<div class="datepickerHeader">'; //div header
       calendarHTML += '<span class="prevMonth">&lt;</span>'; //previous month button
@@ -24,27 +58,29 @@ function DatePicker(divId, dateSelectionCallback) {
       calendarHTML += '<tbody>'; //creating table body
 
       // loop to create calendar cells
-      while (currentDate.getMonth() === this.selectedDate.getMonth()) { //while current date is in the header month
+      for (var row = 0; row < numRows; row++) {
         calendarHTML += '<tr>';
-  
-        for (var i = 0; i < 7; i++) {
-          if (currentDate.getDay() === i) { //if current day matches loop value
-            var temp = 'currentMonthDay';
-            if (currentDate.getMonth() !== this.selectedDate.getMonth()) { //if month matches month loop value
-              temp = 'otherMonthDay';
-            }
-            calendarHTML += '<td class=' + temp + '>' + currentDate.getDate() + '</td>'; //appends value to calendar grid with either class otherMonthDay or currentMonthDay
-            currentDate.setDate(currentDate.getDate() + 1); // go to next day
-          } 
-          else {
-            calendarHTML += '<td></td>';
+
+        for (var col = 0; col < 7; col++) {
+          if (row === 0 && col < firstDayOfMonth) {
+            // Display days from the previous month
+            var day = daysInPreviousMonth - firstDayOfMonth + col + 1;
+            calendarHTML += '<td class="otherMonthDay">' + day + '</td>';
+          } else if (currentDay <= daysInMonth) {
+            // Display days from the current month
+            calendarHTML += '<td class="currentMonthDay">' + currentDay + '</td>';
+            currentDay++;
+          } else {
+            // Display days from the next month
+            calendarHTML += '<td class="otherMonthDay">' + (currentDay - daysInMonth) + '</td>';
+            currentDay++;
           }
         }
         calendarHTML += '</tr>';
       }
-  
+
       calendarHTML += '</tbody></table>';
-      this.div.innerHTML = calendarHTML;    // put created calendar into the div 
+      this.div.innerHTML = calendarHTML;    // put created calendar into the div
       // add event listeners to buttons
       var prevMonthButton = this.div.querySelector('.prevMonth');
       var nextMonthButton = this.div.querySelector('.nextMonth');
@@ -63,10 +99,5 @@ function DatePicker(divId, dateSelectionCallback) {
     this.render(this.selectedDate);
   }
 
-  // Testing code
-  var datePicker = new DatePicker("div1", function (id, fixedDate) {
-    console.log("DatePicker with id", id,
-      "selected date:", fixedDate.month + "/" + fixedDate.day + "/" + fixedDate.year);
-  });
-  datePicker.render(new Date("July 4, 1776"));
+
   
